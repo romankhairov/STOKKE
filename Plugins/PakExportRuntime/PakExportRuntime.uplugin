@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "PakExportRuntime",
+	"Description": "This is a pak export plugin helper",
+	"Category": "Support",
+	"CreatedBy": "romaktion@gmail.com",
+	"CreatedByURL": "innocent.com",
+	"EngineVersion": "5.1.0",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "PakExportRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "PakLoader",
+			"Enabled": true
+		}
+	]
+}
