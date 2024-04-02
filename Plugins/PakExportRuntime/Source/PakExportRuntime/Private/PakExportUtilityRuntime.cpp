@@ -24,13 +24,15 @@
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+constexpr auto SlotDelimiter{"::"};
+
 void UPakExportUtilityRuntime::GenerateJsonsForAssets(const TArray<FString>& InAssets, const FString& DestinationFile)
 {
 	TArray<FAssetData> Assets;
 	const auto& AssetRegistryModule = FModuleManager::Get().LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
 	for (const auto Asset : InAssets)
 	{
-		const auto PakName = "/" + Asset.Replace(TEXT("Content"), TEXT("PakE"), ESearchCase::CaseSensitive)
+		const auto PakName = "/" + Asset.Replace(TEXT("Content"), WCHAR_TO_TCHAR(UPakExportRuntimeStatic::PakExportName), ESearchCase::CaseSensitive)
 		.Replace(TEXT(".uasset"), TEXT(""), ESearchCase::CaseSensitive);
 		const auto Obj = UPakLoaderLibrary::GetPakFileObject(PakName);
 		const auto PackageName = Obj->GetPackage()->GetName();
@@ -124,10 +126,13 @@ void UPakExportUtilityRuntime::GenerateJsonsForAssets(const TArray<FAssetData>& 
 							|| (((UObject*)Actor->GetClass())->IsA<UBlueprintGeneratedClass>()))
 						{
 							Actor->ForEachComponent<UMeshComponent, TFunction<void(UMeshComponent*)>>(false
-								, [&EnvironmentExportData](const auto MeshComponent)
+								, [&EnvironmentExportData, Actor](const auto MeshComponent)
 								{
 									for (const auto& MaterialName : MeshComponent->GetMaterialSlotNames())
-										EnvironmentExportData.slots.Add(MaterialName.ToString());
+										EnvironmentExportData.slots.Add(
+											UKismetSystemLibrary::GetDisplayName(Actor) + SlotDelimiter +
+											UKismetSystemLibrary::GetDisplayName(MeshComponent) + SlotDelimiter +
+											MaterialName.ToString());
 								});
 						}
 					}
@@ -217,7 +222,23 @@ void UPakExportUtilityRuntime::GenerateJsonsForAssets(const TArray<FAssetData>& 
 
 				if (const auto Mesh = Cast<UStaticMesh>(Asset))
 					for (const auto& Material : Mesh->GetStaticMaterials())
-						ProductExportData.slots.AddUnique(Material.MaterialSlotName.ToString());
+						ProductExportData.slots.Add(Material.MaterialSlotName.ToString());
+
+				if (const auto Mesh = Cast<USkeletalMesh>(Asset))
+					for (const auto& Material : Mesh->GetMaterials())
+						ProductExportData.slots.Add(Material.MaterialSlotName.ToString());
+
+				if (const auto Blueprint = Cast<UBlueprint>(Asset))
+				{
+					for (const auto Node : Cast<UBlueprintGeneratedClass>(Blueprint->GeneratedClass)->
+					                       SimpleConstructionScript->GetAllNodes())
+					{
+						if (const auto Mesh = Cast<UMeshComponent>(Node->ComponentTemplate))
+							for (const auto& Slot : Mesh->GetMaterialSlotNames())
+								ProductExportData.slots.Add(
+									UKismetSystemLibrary::GetDisplayName(Mesh) + SlotDelimiter + Slot.ToString());
+					}
+				}
 
 				FString JsonString;
 				if (FJsonObjectConverter::UStructToJsonObjectString(ProductExportData, JsonString))
@@ -238,12 +259,12 @@ void UPakExportUtilityRuntime::GenerateJsonsForAssets(const TArray<FAssetData>& 
 
 				if (const auto Mesh = Cast<UStaticMesh>(Asset))
 					for (const auto& Material : Mesh->GetStaticMaterials())
-						ProductPakData.meshPak.initialState.slots.AddUnique(Material.MaterialSlotName.ToString());
+						ProductPakData.meshPak.initialState.slots.Add(Material.MaterialSlotName.ToString());
 
 				if (const auto Mesh = Cast<USkeletalMesh>(Asset))
 				{
 					for (const auto& Material : Mesh->GetMaterials())
-						ProductPakData.meshPak.initialState.slots.AddUnique(Material.MaterialSlotName.ToString());
+						ProductPakData.meshPak.initialState.slots.Add(Material.MaterialSlotName.ToString());
 
 					for (const auto& Morph : Mesh->K2_GetAllMorphTargetNames())
 						ProductPakData.meshPak.initialState.morphs.AddUnique(Morph);
@@ -262,7 +283,7 @@ void UPakExportUtilityRuntime::GenerateJsonsForAssets(const TArray<FAssetData>& 
 
 						if (const auto Mesh = Cast<UMeshComponent>(ComponentTemplate))
 							for (const auto& Slot : Mesh->GetMaterialSlotNames())
-								ProductPakData.meshPak.initialState.slots.AddUnique(Slot.ToString());
+								ProductPakData.meshPak.initialState.slots.Add(Slot.ToString());
 
 						if (const auto SkeletalMesh = Cast<USkeletalMeshComponent>(ComponentTemplate))
 							Skeletons.Emplace(SkeletalMesh->SkeletalMesh->GetSkeleton());
@@ -377,6 +398,11 @@ void UPakExportUtilityRuntime::GenerateJsonsForAssets(const TArray<FAssetData>& 
 	}
 }
 
+FString UPakExportUtilityRuntime::GetSlotDelimiter()
+{
+	return SlotDelimiter;
+}
+
 FApplyCameraPresetPayloadJson UPakExportUtilityRuntime::GenerateCameraData(AActor* CameraActor, float FocusOffset/* = 0.f*/)
 {
 	FApplyCameraPresetPayloadJson CameraData;
@@ -404,5 +430,6 @@ FApplyCameraPresetPayloadJson UPakExportUtilityRuntime::GenerateCameraData(AActo
 	UEngine::CopyPropertiesForUnrelatedObjects(CameraComp, CopyCameraComp, CopyPropertiesForUnrelatedObjectsParams);
 	CopyCameraComp->Serialize(Ar);
 	CameraData.object = FBase64::Encode(Bytes);
+	CameraData.fov = CopyCameraComp->FieldOfView;
 	return CameraData;
 }

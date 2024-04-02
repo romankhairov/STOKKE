@@ -62,7 +62,7 @@ public:
 	UPROPERTY() FString id;
 	UPROPERTY() FString previewPath;
 	UPROPERTY() FMaterialPropertyData property;
-	UPROPERTY() EAssetType type{EAssetType::MATERIAL};
+	UPROPERTY() EAssetType type{EAssetType::material};
 };
 
 USTRUCT()
@@ -120,7 +120,7 @@ struct FProductExportData : public FMaterialableExportData
 public:
 	FProductExportData()
 	{
-		type = EAssetType::PRODUCT;
+		type = EAssetType::product;
 	}
 };
 
@@ -131,7 +131,7 @@ struct FEnvironmentExportData : public FMaterialableExportData
 public:
 	FEnvironmentExportData()
 	{
-		type = EAssetType::ENVIRONMENT;
+		type = EAssetType::environment;
 	}
 };
 
@@ -142,7 +142,7 @@ struct FMaterialExportData : public FExportData
 public:
 	FMaterialExportData()
 	{
-		type = EAssetType::MATERIAL;
+		type = EAssetType::material;
 	}
 };
 
@@ -161,4 +161,7 @@ public:
 	static void GenerateJsonsForAssets(const TArray<FAssetData>& InAssets, const FString& DestinationFile,
 	                                   bool MaterialsPakRequested = false, bool CamerasPakRequested = false,
 	                                   bool LevelSequencePakRequested = false, const FString& Archived = {});
+
+public:
+	UFUNCTION(BlueprintPure) static FString GetSlotDelimiter();
 };

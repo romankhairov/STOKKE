@@ -11,6 +11,4 @@ for %%I in ("%~dp0.") do for %%J in ("%%~dpI.") do set ParentFolderName=%%~dpnxJ
 
 set UtilsDir=%ParentFolderName%\Utils
 
-cd "%SourceDir%"
-
-"%UtilsDir%\7-Zip\x64\7zr.exe" a -r "%DestName%.7z" *
+"%UtilsDir%\7-Zip\x64\7za.exe" a -tzip -r "%DestName%.zip" %SourceDir%\*

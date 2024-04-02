@@ -4,10 +4,10 @@ FIntPoint2DJson::FIntPoint2DJson()
 {
 }
 
-FIntPoint2DJson::FIntPoint2DJson(const FIntPoint IntPoint) : x(IntPoint.X), y(IntPoint.Y)
+FIntPoint2DJson::FIntPoint2DJson(const FIntPoint& IntPoint) : x(IntPoint.X), y(IntPoint.Y)
 {
 }
- 
+
 FIntPoint2DJson::FIntPoint2DJson(int32 x, int32 y)	: x(x), y(y)
 {
 }
@@ -62,7 +62,7 @@ FLinearColorJson::FLinearColorJson()
 {
 }
 
-FLinearColorJson::FLinearColorJson(const FLinearColor Color) : r(Color.R), g(Color.G), b(Color.B), a(Color.A)
+FLinearColorJson::FLinearColorJson(const FLinearColor& Color) : r(Color.R), g(Color.G), b(Color.B), a(Color.A)
 {
 }
 
@@ -84,65 +84,40 @@ FPayloadJson::FPayloadJson()
 
 FSelectProductPayloadJson::FSelectProductPayloadJson()
 {
-	type = EAssetType::PRODUCT;
+	type = EAssetType::product;
 }
 
 FLoadLevelPayloadJson::FLoadLevelPayloadJson()
 {
-	type = EAssetType::ENVIRONMENT;
+	type = EAssetType::environment;
 }
 
 FSetMaterialPayloadJson::FSetMaterialPayloadJson()
 {
-	type = EAssetType::MATERIAL;
+	type = EAssetType::material;
 }
 
 // ----------------------- LIGHT --------------------------------
 #pragma region LightRegion
 
-FAddPanelLightPayloadJson::FAddPanelLightPayloadJson()
+FLightPayload::FLightPayload()
 {
-	type = EAssetType::LIGHT;
-}
-
-FAddRectLightPayloadJson::FAddRectLightPayloadJson()
-{
-	type = EAssetType::LIGHT;
-}
-
-FUpdatePanelLightPayloadJson::FUpdatePanelLightPayloadJson()
-{
-	type = EAssetType::LIGHT;
-}
-
-FUpdateRectLightPayloadJson::FUpdateRectLightPayloadJson()
-{
-	type = EAssetType::LIGHT;
+	type = EAssetType::light;
 }
 
 FSet3PointLightPayloadJson::FSet3PointLightPayloadJson()
 {
-	type = EAssetType::LIGHT;
+	type = EAssetType::light;
 }
 
 FSetHdrPayloadJson::FSetHdrPayloadJson()
 {
-	type = EAssetType::LIGHT;
-}
-
-FSetSunOrientationPayloadJson::FSetSunOrientationPayloadJson()
-{
-	type = EAssetType::LIGHT;
-}
-
-FTimeUDSPayloadJson::FTimeUDSPayloadJson()
-{
-	type = EAssetType::LIGHT;
+	type = EAssetType::light;
 }
 
 FEnableUDSPayloadJson::FEnableUDSPayloadJson()
 {
-	type = EAssetType::LIGHT;
+	type = EAssetType::light;
 }
 
 #pragma endregion
@@ -152,27 +127,27 @@ FEnableUDSPayloadJson::FEnableUDSPayloadJson()
 
 FSettingsSequencePayloadJson::FSettingsSequencePayloadJson()
 {
-	type = EAssetType::LEVEL_SEQUENCE;
+	type = EAssetType::level_sequence;
 }
 
 FInitSequencePayloadJson::FInitSequencePayloadJson()
 {
-	type = EAssetType::LEVEL_SEQUENCE;
+	type = EAssetType::level_sequence;
 }
 
 FPlaySequencePayloadJson::FPlaySequencePayloadJson()
 {
-	type = EAssetType::LEVEL_SEQUENCE;
+	type = EAssetType::level_sequence;
 }
 
 FJumpToSequencePayloadJson::FJumpToSequencePayloadJson()
 {
-	type = EAssetType::LEVEL_SEQUENCE;
+	type = EAssetType::level_sequence;
 }
 
 FDragSequencePayloadJson::FDragSequencePayloadJson()
 {
-	type = EAssetType::LEVEL_SEQUENCE;
+	type = EAssetType::level_sequence;
 }
 
 #pragma endregion
@@ -188,13 +163,9 @@ FCameraClampsJson::FCameraClampsJson()
 {
 }
 
-FCameraTransformJson::FCameraTransformJson()
-{
-}
-
 FApplyCameraPresetPayloadJson::FApplyCameraPresetPayloadJson()
 {
-	type = EAssetType::CAMERA;
+	type = EAssetType::camera;
 }
 
 #pragma endregion
@@ -205,17 +176,17 @@ FApplyCameraPresetPayloadJson::FApplyCameraPresetPayloadJson()
 
 FScreenshotPayloadJson::FScreenshotPayloadJson()
 {
-	type = EAssetType::CAMERA;
+	type = EAssetType::camera;
 }
 
 FEnable360PayloadJson::FEnable360PayloadJson()
 {
-	type = EAssetType::CAMERA;
+	type = EAssetType::camera;
 }
 
 F360VerticalRotatePayloadJson::F360VerticalRotatePayloadJson()
 {
-	type = EAssetType::CAMERA;
+	type = EAssetType::camera;
 }
 
 #pragma endregion

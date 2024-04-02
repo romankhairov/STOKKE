@@ -39,6 +39,10 @@ public:
 private:
 	static bool SetStarted(bool Val);
 	static bool Prepare();
+	static void SaveAssetsCopy(const TArray<FAssetData>& InAssets);
+	static void SaveAssetCopy(const FAssetData& InAsset);
+	static void SaveAssetCopy(const UObject* InAsset);
+	static void MaterialSlotsUnification(const TArray<FAssetData>& InAssets);
 	static bool MigratePackages(const TArray<FAssetData>& Assets = {});
 	static void MigratePackages_ReportConfirmed(TSharedPtr<TArray<ReportPackageData>> PackageDataToMigrate);
 	static bool CookPak(const FString& DestinationFile, const FString& CustomFileName);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PakExportRuntimeStatic.h"
 #include "CommandsHelpers.generated.h"
 
 ///A vector in 2-D space composed of components (X, Y) with floating point precision.
@@ -23,7 +24,7 @@ struct PAKEXPORTRUNTIME_API FIntPoint2DJson
 	GENERATED_BODY()
 public:
 	FIntPoint2DJson();
-	FIntPoint2DJson(const FIntPoint IntPoint);
+	FIntPoint2DJson(const FIntPoint& IntPoint);
 	FIntPoint2DJson(int32 x, int32 y);
 
 	///Holds the point's X-coordinate.
@@ -114,7 +115,7 @@ struct PAKEXPORTRUNTIME_API FLinearColorJson
 	GENERATED_BODY()
 public:
 	FLinearColorJson();
-	FLinearColorJson(const FLinearColor Color);
+	FLinearColorJson(const FLinearColor& Color);
 	FLinearColorJson(float r, float g, float b, float a);
 
 	///Color's Red component.
@@ -171,7 +172,7 @@ struct PAKEXPORTRUNTIME_API FMaterialJson
 	GENERATED_BODY()
 public:
 	///Name of the asset root folder(almost always like this)
-	UPROPERTY() FString pak = "PakE";
+	UPROPERTY() FString pak = UPakExportRuntimeStatic::PakExportName;
 
 	///Name of the asset relative to Content folder in project
 	UPROPERTY() FString name = "";
@@ -230,10 +231,10 @@ public:
 	UPROPERTY() FString pakFilePath = "";
 
 	///Name of the asset root folder(almost always like this)
-	UPROPERTY() FString name = "PakE";
+	UPROPERTY() FString name = UPakExportRuntimeStatic::PakExportName;
 
 	///Name of the pak export plugin (almost always like this)
-	UPROPERTY() FString mountPath = "../../../PakExport/Plugins/";
+	UPROPERTY() FString mountPath = UPakExportRuntimeStatic::PakExportMountPath;
 
 	///path to usd/usdz file overrides pak file path
 	UPROPERTY() FString usd_path = "";
@@ -312,14 +313,15 @@ public:
 UENUM()
 enum class EAssetType : uint8
 {
-	NONE,
-	PRODUCT,
-	MATERIAL,
-	ENVIRONMENT,
-	CAMERA,
-	LEVEL_SEQUENCE,
-	SCREENSHOT,
-	LIGHT
+	none,
+	product,
+	material,
+	environment,
+	level, //Deprecated, need for json strict
+	camera,
+	level_sequence,
+	screenshot,
+	light
 };
 
 USTRUCT()
@@ -330,8 +332,10 @@ public:
 	FPayloadJson();
 	
 protected:
-	UPROPERTY() EAssetType type = EAssetType::NONE;
+	UPROPERTY() EAssetType type = EAssetType::none;
 	UPROPERTY() FString unrealVersion;
+public:
+	UPROPERTY() FString assetId;
 };
 
 ///Select product command payload
@@ -354,8 +358,13 @@ public:
 	///Animations pak file
 	UPROPERTY() FPakJson animationsPak;
 
-	///asset ID from front to store
-	UPROPERTY() FString assetId;
+	UPROPERTY() FString objectName;
+
+	UPROPERTY() TArray<FString> material_slots;
+
+	UPROPERTY() FTransformJson transform;
+
+	UPROPERTY() TArray<FString> material_vector_params;
 };
 
 USTRUCT(BlueprintType)
@@ -392,58 +401,52 @@ public:
 // ----------------------- LIGHT --------------------------------
 #pragma region LightRegion
 
-USTRUCT(BlueprintType)
-struct PAKEXPORTRUNTIME_API FAddPanelLightPayloadJson : public FPayloadJson
+USTRUCT()
+struct PAKEXPORTRUNTIME_API FLightPayload : public FPayloadJson
 {
 	GENERATED_BODY()
 public:
-	FAddPanelLightPayloadJson();
+	FLightPayload();
 
-	///light settings
-	UPROPERTY(BlueprintReadWrite, Category = Light) FLightJson light;
-
-	///set current ?
-	UPROPERTY(BlueprintReadWrite, Category = Light) bool setCurrent = false;
+	UPROPERTY() FVectorJson location;
+	UPROPERTY() FRotatorJson rotation;
+	UPROPERTY() FVectorJson subLocation;
+	UPROPERTY() FRotatorJson subRotation;
+	UPROPERTY() float armLength = 0;
+	UPROPERTY() FVector2DJson size;
+	UPROPERTY() float intensity = 0;
+	UPROPERTY() FLinearColorJson color;
+	UPROPERTY() bool disableGizmo = false;
+	UPROPERTY() float yaw = 0;
+	UPROPERTY() float pitch = 0;
+	UPROPERTY() FString objectName;
+	
 };
 
-USTRUCT(BlueprintType)
-struct PAKEXPORTRUNTIME_API FAddRectLightPayloadJson : public FPayloadJson
+UENUM()
+enum class ERectLightType : uint8
 {
-	GENERATED_BODY()
-public:
-	FAddRectLightPayloadJson();
-
-	///light settings
-	UPROPERTY(BlueprintReadWrite, Category = Light) FLightJson light;
-
-	///set current ?
-	UPROPERTY(BlueprintReadWrite, Category = Light) bool setCurrent = false;
+	rect,
+	circ,
+	hexa
 };
 
-USTRUCT(BlueprintType)
-struct PAKEXPORTRUNTIME_API FUpdatePanelLightPayloadJson : public FPayloadJson
+USTRUCT()
+struct PAKEXPORTRUNTIME_API FRectLightPayload : public FLightPayload
 {
 	GENERATED_BODY()
 public:
-	FUpdatePanelLightPayloadJson();
-
-	///light settings
-	UPROPERTY(BlueprintReadWrite, Category = Light) FLightJson light;
-
-	UPROPERTY(BlueprintReadWrite, Category = Light) FString objectName;
+	UPROPERTY() ERectLightType rectLightType = ERectLightType::rect;
+	UPROPERTY() float temp = 0;
 };
 
-USTRUCT(BlueprintType)
-struct PAKEXPORTRUNTIME_API FUpdateRectLightPayloadJson : public FPayloadJson
+USTRUCT()
+struct PAKEXPORTRUNTIME_API FPanelLightPayload : public FLightPayload
 {
 	GENERATED_BODY()
 public:
-	FUpdateRectLightPayloadJson();
-
-	///light settings
-	UPROPERTY(BlueprintReadWrite, Category = Light) FLightJson light;
-
-	UPROPERTY(BlueprintReadWrite, Category = Light) FString objectName;
+	UPROPERTY() float kelvin = 0;
+	UPROPERTY() FLinearColorJson colorTint;
 };
 
 USTRUCT(BlueprintType)
@@ -483,31 +486,30 @@ public:
 };
 
 USTRUCT(BlueprintType)
-struct PAKEXPORTRUNTIME_API FSetSunOrientationPayloadJson : public FPayloadJson
+struct FWeatherPayload : public FPayloadJson
 {
 	GENERATED_BODY()
 public:
-	FSetSunOrientationPayloadJson();
-
-	///ColorTint
-	UPROPERTY(BlueprintReadWrite, Category = Light) FString omageUrl;
-	///Intensity
-	UPROPERTY(BlueprintReadWrite, Category = Light) float northYaw;
 	///
-	UPROPERTY(BlueprintReadWrite, Category = Light) float longitude;
+	UPROPERTY() bool enable = false;
 	///
-	UPROPERTY(BlueprintReadWrite, Category = Light) float latitude;
-
+	UPROPERTY(BlueprintReadWrite, Category = Light) float northYaw = 0;
+	///
+	UPROPERTY(BlueprintReadWrite, Category = Light) float longitude = 0;
+	///
+	UPROPERTY(BlueprintReadWrite, Category = Light) float latitude = 0;
+	///
+	UPROPERTY(BlueprintReadWrite, Category = Light) float timeOfDay = 0.f;
 };
 
-USTRUCT(BlueprintType)
-struct PAKEXPORTRUNTIME_API FTimeUDSPayloadJson : public FPayloadJson
+USTRUCT()
+struct FComposurePayload : public FPayloadJson
 {
 	GENERATED_BODY()
 public:
-	FTimeUDSPayloadJson();
-	///TODO WTF rename
-	UPROPERTY(BlueprintReadWrite, Category = Light) float val;
+	UPROPERTY() bool enable = false;
+	UPROPERTY() FString url;
+	UPROPERTY() FString colorHex;
 };
 
 USTRUCT(BlueprintType)
@@ -518,6 +520,7 @@ public:
 	FEnableUDSPayloadJson();
 	///TODO WTF rename
 	UPROPERTY(BlueprintReadWrite, Category = Light) bool val;
+	UPROPERTY(BlueprintReadWrite, Category = Light) bool enable;
 };
 
 #pragma endregion
@@ -562,8 +565,9 @@ struct PAKEXPORTRUNTIME_API FInitSequencePayloadJson : public FSettingsSequenceP
 public:
 	FInitSequencePayloadJson();
 
-	UPROPERTY(BlueprintReadWrite, Category= Sequence) TArray<FAssetPakJson> paks;
+	UPROPERTY(BlueprintReadWrite, Category = Sequence) TArray<FAssetPakJson> paks;	
 };
+
 
 USTRUCT(BlueprintType)
 struct PAKEXPORTRUNTIME_API FPlaySequencePayloadJson : public FPayloadJson
@@ -597,8 +601,15 @@ struct PAKEXPORTRUNTIME_API FDragSequencePayloadJson : public FPayloadJson
 public:
 	FDragSequencePayloadJson();
 
+	///choose case to drag
+	UPROPERTY(BlueprintReadWrite, Category = PakExportRuntime) bool dragBySectionTime = false;
+	///Id of section of sequence to drag
+	UPROPERTY(BlueprintReadWrite, Category = PakExportRuntime) int32 id;
+	///Time of section of sequence to drag
+	UPROPERTY(BlueprintReadWrite, Category = PakExportRuntime) float sectionTime;
 	///Global time of sequence to drag
 	UPROPERTY(BlueprintReadWrite, Category = PakExportRuntime) float time;
+
 };
 
 #pragma endregion
@@ -636,17 +647,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = Camera) float maxYaw = 0;
 };
 
-USTRUCT(BlueprintType)
-struct PAKEXPORTRUNTIME_API FCameraTransformJson
-{
-	GENERATED_BODY()
-public:
-	FCameraTransformJson();
-
-	UPROPERTY(BlueprintReadWrite, Category = Camera) FVectorJson location;
-	UPROPERTY(BlueprintReadWrite, Category = Camera) FRotatorJson rotation;
-};
-
 //TODO split it to separated structs
 USTRUCT(BlueprintType)
 struct PAKEXPORTRUNTIME_API FApplyCameraPresetPayloadJson : public FPayloadJson
@@ -662,6 +662,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category=PakExportRuntime) float focalLength = 0;
 	UPROPERTY(BlueprintReadWrite, Category=PakExportRuntime) float aperture = 0;
 	UPROPERTY(BlueprintReadWrite, Category=PakExportRuntime) float focusOffset = 0;
+	UPROPERTY(BlueprintReadWrite, Category=PakExportRuntime) float fov = 0;
 };
 
 #pragma endregion
@@ -716,3 +717,8 @@ public:
 };
 
 #pragma endregion
+
+// hello pull request
+// bla bla bla
+//
+//
